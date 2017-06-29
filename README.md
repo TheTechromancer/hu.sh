@@ -1,6 +1,6 @@
 # hu.sh
 
-### bash -c "$(wget -O - https://raw.githubusercontent.com/TheTechromancer/hu.sh/master/hu.sh)"
+##### bash -c "$(wget -O - https://raw.githubusercontent.com/TheTechromancer/hu.sh/master/hu.sh)"
 
 A privacy script for Linux.  Performs the following tasks:
 
