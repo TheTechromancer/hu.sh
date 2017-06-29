@@ -99,7 +99,7 @@ hush() {
 	printf '[+] Disabling python history\n'
 	disable_python_history
 
-	printf '[+] Disabling ViM history\n'
+	printf '[+] Disabling Vim history\n'
 	hash vim 2>/dev/null && disable_vim_history
 
 	printf '[+] Disabling systemd logging\n'
