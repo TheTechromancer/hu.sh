@@ -4,9 +4,9 @@ journal_conf='/etc/systemd/journald.conf'
 
 check_root() {
 
-	if [ $EUID != 0 ]; then
-		sudo "$0" "$@"
-		exit $?
+	if [ $EUID -ne 0 ]; then
+		printf "[!] Please sudo me!\n"
+		exit 1
 	fi
 
 }
