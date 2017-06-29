@@ -103,7 +103,7 @@ hush() {
 	hash vim 2>/dev/null && disable_vim_history
 
 	printf '[+] Disabling systemd logging\n'
-	disable_systemd_logging
+	hash journalctl 2>/dev/null && disable_systemd_logging
 
 	printf '[+] Done.\n'
 
