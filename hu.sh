@@ -16,7 +16,7 @@ disable_bash_history() {
 	# note: up-arrow in shell still works
 
 	# delete bash history for all users
-	for histfile in $(find /home /root -type f -maxdepth 2 -name '.bash_history'); do
+	for histfile in $(find /home /root -maxdepth 2 -type f -name '.bash_history'); do
 
 		shred $histfile 2>/dev/null
 		rm $histfile
@@ -34,7 +34,7 @@ disable_bash_history() {
 disable_python_history() {
 
 	# delete python history for all users
-	for histfile in $(find /home /root -type f -maxdepth 2 -name '.python_history'); do
+	for histfile in $(find /home /root -maxdepth 2 -type f -name '.python_history'); do
 
 		shred $histfile 2>/dev/null
 		rm $histfile
@@ -53,7 +53,7 @@ disable_python_history() {
 disable_vim_history() {
 
 	# delete vim history for all users
-	for viminfo in $(find /home /root -type f -maxdepth 2 -name '.viminfo'); do
+	for viminfo in $(find /home /root -maxdepth 2 -type f -name '.viminfo'); do
 
 		shred $viminfo 2>/dev/null
 		rm $viminfo
