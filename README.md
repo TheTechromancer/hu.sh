@@ -1,9 +1,12 @@
 # hu.sh
+### A privacy script for fresh installs of Linux
 
-### If you're feeling adventurous:
+<br>
+
+Pipe into bash - if you're feeling adventurous :)
 #### bash -c "$(wget -O - https://raw.githubusercontent.com/TheTechromancer/hu.sh/master/hu.sh)"
 
-A privacy script for Linux.  Performs the following tasks:
+#### Performs the following tasks:
 
 <ul>
 	<li>Deletes and disables bash history for all users</li>

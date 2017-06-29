@@ -27,7 +27,7 @@ disable_bash_history() {
 	sed -i '/export HISTFILE=.*/c\' /etc/profile
 
 	# send all history to /dev/null
-	printf "\nexport HISTFILE=/dev/null\n" >> /etc/profile
+	printf "export HISTFILE=/dev/null\n" >> /etc/profile
 
 }
 
@@ -43,6 +43,7 @@ disable_python_history() {
 
 	# create immutable file to block access
 	for homedir in $(grep -v '/nologin\|/false' /etc/passwd | cut -d: -f6 | grep -v '^/$'); do 
+
 		touch $homedir/.python_history
 		chattr +i $homedir/.python_history
 	
@@ -65,7 +66,7 @@ disable_vim_history() {
 	sed -i '/set viminfo=.*/c\' /etc/vimrc
 
 	# disable viminfo
-	printf '\nlet skip_defaults_vim=1\nset viminfo=""' >> /etc/vimrc
+	printf 'let skip_defaults_vim=1\nset viminfo=""' >> /etc/vimrc
 
 }
 
