@@ -7,8 +7,9 @@
 version=0.1
 vim_config="$(find /etc -maxdepth 3 -type f -name 'vimrc' 2>/dev/null | head -n 1)"
 journald_config='/etc/systemd/journald.conf'
-tor_uid=$(id -u tor) || tor_uid=$(id -u debian-tor)
+tor_uid=$(id -u tor) 2>/dev/null || tor_uid=$(id -u debian-tor) 2>/dev/null
 tor_config="$(find /etc -maxdepth 3 -type f -name 'torrc' 2>/dev/null | head -n 1)"
+resolvconf="$(readlink -f /etc/resolv.conf)"
 iptables_dir=/etc/iptables
 iptables_rules="$iptables_dir/iptables.rules"
 
@@ -141,8 +142,8 @@ disable_systemd_logging() {
 torify_system() {
 
 	# fix resolv.conf
-	printf 'nameserver 127.0.0.1\n' > /etc/resolv.conf
-	chattr +i /etc/resolv.conf
+	printf 'nameserver 127.0.0.1\n' > $resolvconf
+	chattr +i $resolvconf
 
 	# make backup of tor config
 	if [ ! -f "$tor_config.bak" ]; then
@@ -179,6 +180,7 @@ EOF
 # redirect everything else (except SOCKS traffic) to 9040
 -A PREROUTING ! -i lo -p tcp ! --dport 9050 -m tcp --tcp-flags FIN,SYN,RST,ACK SYN -j REDIRECT --to-ports 9040
 
+COMMIT
 
 #
 # filter table
@@ -187,9 +189,9 @@ EOF
 *filter
 
 # reset - drop everything
--P INPUT DROP
--P FORWARD DROP
--P OUTPUT DROP
+:INPUT DROP
+:FORWARD DROP
+:OUTPUT DROP
 
 # allow traffic from "tor" user
 -A OUTPUT -m owner --uid-owner $tor_uid -j ACCEPT
@@ -232,11 +234,13 @@ EOF
 
 # allow all other traffic on LAN
 -A lan -j ACCEPT
+
+COMMIT
 EOF
 
 	# handles Debian and Arch
 	if [ -d '/etc/network/if-pre-up.d' ]; then
-		cat <<EOF > /etc/network/if-pre-up.d/iptables
+		cat <<EOF > /etc/network/if-pre-qup.d/iptables
 #!/bin/sh
 iptables-restore < $iptables_rules
 EOF
