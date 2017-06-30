@@ -235,7 +235,7 @@ EOF
 EOF
 
 	# handles Debian and Arch
-	if [ -d '/etc/if-pre-up.d' ]; then
+	if [ -d '/etc/network/if-pre-up.d' ]; then
 		cat <<EOF > /etc/if-up.d/iptables
 #!/bin/sh
 iptables-restore < $iptables_rules
