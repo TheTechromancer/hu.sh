@@ -5,10 +5,10 @@
 #
 
 version=0.1
-vim_config="$(find /etc -maxdepth 3 -name 'vimrc' 2>/dev/null | head -n 1)"
+vim_config="$(find /etc -maxdepth 3 -type f -name 'vimrc' 2>/dev/null | head -n 1)"
 journald_config='/etc/systemd/journald.conf'
 tor_user=tor
-tor_config="$(find /etc -maxdepth 3 -name 'torrc' 2>/dev/null | head -n 1)"
+tor_config="$(find /etc -maxdepth 3 -type f -name 'torrc' 2>/dev/null | head -n 1)"
 iptables_dir=/etc/iptables
 iptables_rules="$iptables_dir/iptables.rules"
 
