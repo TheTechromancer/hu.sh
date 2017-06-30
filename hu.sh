@@ -7,7 +7,7 @@
 version=0.1
 vim_config="$(find /etc -maxdepth 3 -type f -name 'vimrc' 2>/dev/null | head -n 1)"
 journald_config='/etc/systemd/journald.conf'
-tor_user=tor
+tor_uid=$(id -u tor) || tor_uid=$(id -u debian-tor)
 tor_config="$(find /etc -maxdepth 3 -type f -name 'torrc' 2>/dev/null | head -n 1)"
 iptables_dir=/etc/iptables
 iptables_rules="$iptables_dir/iptables.rules"
@@ -83,14 +83,14 @@ disable_python_history() {
 	for histfile in $(find /home /root -maxdepth 2 -type f -name '.python_history'); do
 
 		shred $histfile 2>/dev/null
-		rm $histfile
+		rm $histfile 2>/dev/null
 	
 	done
 
 	# create immutable file to block access
 	for homedir in $(grep -v '/nologin\|/false' /etc/passwd | cut -d: -f6 | grep -v '^/$'); do 
 
-		touch $homedir/.python_history
+		touch $homedir/.python_history 2>/dev/null
 		chattr +i $homedir/.python_history
 	
 	done
@@ -192,7 +192,7 @@ EOF
 -P OUTPUT DROP
 
 # allow traffic from "tor" user
--A OUTPUT -m owner --uid-owner "$tor_user" -j ACCEPT
+-A OUTPUT -m owner --uid-owner $tor_uid -j ACCEPT
 
 # create new chain "lan"
 -N lan
