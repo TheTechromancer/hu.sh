@@ -130,7 +130,7 @@ disable_systemd_logging() {
 
 	# delete logs and restart journal service
 	# journalctl is for plebes
-	systemctl stop systemd-journald.service
+	systemctl stop systemd-journald.service 2>/dev/null
 	for logfile in $(find /var/log/journal -type f); do shred $logfile; done
 	rm -rf /var/log/journal/*
 	systemctl start systemd-journald.service
@@ -236,7 +236,7 @@ EOF
 
 	# handles Debian and Arch
 	if [ -d '/etc/network/if-pre-up.d' ]; then
-		cat <<EOF > /etc/if-up.d/iptables
+		cat <<EOF > /etc/network/if-pre-up.d/iptables
 #!/bin/sh
 iptables-restore < $iptables_rules
 EOF
