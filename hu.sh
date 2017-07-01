@@ -17,6 +17,7 @@ tor_socks_port=9050
 resolvconf="$(readlink -f /etc/resolv.conf)"
 iptables_dir=/etc/iptables
 iptables_rules="$iptables_dir/iptables.rules"
+iptables_restore_script='/etc/network/if-pre-up.d/iptables'
 
 # names of executables used in script
 required_progs=( 'iptables' 'tor' 'systemctl' )
@@ -148,6 +149,7 @@ torify_system() {
 
 	# fix resolv.conf
 	printf 'nameserver 127.0.0.1\n' > $resolvconf
+	chmod 444 $resolvconf
 	chattr +i $resolvconf
 
 	# make backup of tor config
@@ -169,6 +171,19 @@ EOF
 	mkdir "$iptables_dir"
 	cat <<EOF > $iptables_rules
 #
+# mangle table
+#
+
+*mangle
+
+# transparently proxy all TCP traffic (that's not already going to Tor's SOCKS port)
+-A PREROUTING -p tcp --dst 127.0.0.1 --dport 9050 -j RETURN
+-A PREROUTING -p tcp -m owner ! --uid-owner $tor_uid -j TPROXY --on-ip 127.0.0.1 --on-port $tor_trans_port
+
+COMMIT
+
+
+#
 # NAT table
 #
 
@@ -187,19 +202,6 @@ COMMIT
 
 
 #
-# mangle table
-#
-
-*mangle
-
-# transparently proxy all TCP traffic (that's not already going to Tor's SOCKS port)
--A PREROUTING -p tcp --dst 127.0.0.1 --dport 9050 -j RETURN
--A PREROUTING -p tcp ! --uid-owner $tor_uid -j TPROXY --on-ip_address 127.0.0.1 --on-port $tor_trans_port
-
-COMMIT
-
-
-#
 # filter table
 #
 
@@ -210,7 +212,7 @@ COMMIT
 :FORWARD DROP
 :OUTPUT DROP
 
-# allow traffic from "tor" user
+# allow traffic from "$tor_user" user
 -A OUTPUT -m owner --uid-owner $tor_uid -j ACCEPT
 
 # create new chain "LAN"
@@ -257,10 +259,13 @@ EOF
 
 	# handles Debian and Arch
 	if [ -d '/etc/network/if-pre-up.d' ]; then
-		cat <<EOF > /etc/network/if-pre-up.d/iptables
+		cat <<EOF > "$iptables_restore_script"
 #!/bin/sh
-iptables-restore < $iptables_rules
+iptables-restore < "$iptables_rules"
 EOF
+	
+		chmod +x "$iptables_restore_script"
+
 	else
 		systemctl enable iptables.service
 		systemctl start iptables.service
