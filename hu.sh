@@ -185,8 +185,9 @@ EOF
 :OUTPUT ACCEPT
 :POSTROUTING ACCEPT
 
-# redirect all DNS queries to tor
--A PREROUTING -p udp --dport 53 -j DNAT --to-destination 127.0.0.1:$tor_dns_port
+# proxy all DNS queries
+-A OUTPUT -p udp --dport 5353 -j REDIRECT --to-ports $tor_dns_port
+-A OUTPUT -p udp --dport 53 -j REDIRECT --to-ports $tor_dns_port
 
 # proxy .onion addresses
 -A OUTPUT -d $tor_net_range -p tcp -m tcp --tcp-flags FIN,SYN,RST,ACK SYN -j REDIRECT --to-ports $tor_trans_port
@@ -237,19 +238,17 @@ COMMIT
 -I OUTPUT ! -o lo ! -d 127.0.0.1 ! -s 127.0.0.1 -p tcp -m tcp --tcp-flags ACK,FIN ACK,FIN -j DROP
 -I OUTPUT ! -o lo ! -d 127.0.0.1 ! -s 127.0.0.1 -p tcp -m tcp --tcp-flags ACK,RST ACK,RST -j DROP
 
-#allow Tor process output
+# allow Tor process output
 -A OUTPUT ! -o lo -m owner --uid-owner $tor_uid -p tcp -m tcp --tcp-flags FIN,SYN,RST,ACK SYN -m state --state NEW -j ACCEPT
 
-#allow loopback output
+# allow loopback output
 -A OUTPUT -d 127.0.0.1/32 -o lo -j ACCEPT
 
-#tor transproxy magic
--A OUTPUT -d 127.0.0.1/32 -p tcp -m tcp --dport $tor_trans_port --tcp-flags FIN,SYN,RST,ACK SYN -j ACCEPT
+# tor transproxy magic
+-A OUTPUT -d 127.0.0.1/32 -p tcp --dport $tor_trans_port -m tcp --tcp-flags FIN,SYN,RST,ACK SYN -j ACCEPT
 
 # allow already active connections from localhost
 -A OUTPUT -m state --state ESTABLISHED -j ACCEPT
-
-
 
 # allow DNS to loopback on port $tor_dns_port
 -A OUTPUT -o lo -p udp --dport $tor_dns_port -j ACCEPT
@@ -282,6 +281,7 @@ iptables-restore < "$iptables_rules"
 EOF
 	
 		chmod +x "$iptables_restore_script"
+		iptables-restore < "$iptables_rules"
 
 	else
 		systemctl enable iptables.service
