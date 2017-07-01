@@ -7,8 +7,13 @@
 version=0.1
 vim_config="$(find /etc -maxdepth 3 -type f -name 'vimrc' 2>/dev/null | head -n 1)"
 journald_config='/etc/systemd/journald.conf'
+
 tor_uid=$(id -u tor) 2>/dev/null || tor_uid=$(id -u debian-tor) 2>/dev/null
 tor_config="$(find /etc -maxdepth 3 -type f -name 'torrc' 2>/dev/null | head -n 1)"
+tor_dns_port=5353
+tor_trans_port=9040
+tor_socks_port=9050
+
 resolvconf="$(readlink -f /etc/resolv.conf)"
 iptables_dir=/etc/iptables
 iptables_rules="$iptables_dir/iptables.rules"
@@ -152,9 +157,9 @@ torify_system() {
 
 	# write new tor config
 	cat <<EOF > $tor_config
-SocksPort 9050
-DNSPort 5353
-TransPort 9040
+SocksPort $tor_socks_port
+DNSPort $tor_dns_port
+TransPort $tor_trans_port
 EOF
 
 	systemctl enable tor.service
@@ -175,12 +180,24 @@ EOF
 :OUTPUT ACCEPT
 :POSTROUTING ACCEPT
 
-# redirect UDP/DNS to port 5353
--A PREROUTING ! -i lo -p udp -m udp --dport 53 -j REDIRECT --to-ports 5353
-# redirect everything else (except SOCKS traffic) to 9040
--A PREROUTING ! -i lo -p tcp ! --dport 9050 -m tcp --tcp-flags FIN,SYN,RST,ACK SYN -j REDIRECT --to-ports 9040
+# redirect all DNS queries to tor
+-A PREROUTING -p udp --dport 53 -j DNAT --to-destination 127.0.0.1:$tor_dns_port
 
 COMMIT
+
+
+#
+# mangle table
+#
+
+*mangle
+
+# transparently proxy all TCP traffic (that's not already going to Tor's SOCKS port)
+-A PREROUTING -p tcp --dst 127.0.0.1 --dport 9050 -j RETURN
+-A PREROUTING -p tcp ! --uid-owner $tor_uid -j TPROXY --on-ip_address 127.0.0.1 --on-port $tor_trans_port
+
+COMMIT
+
 
 #
 # filter table
@@ -196,8 +213,8 @@ COMMIT
 # allow traffic from "tor" user
 -A OUTPUT -m owner --uid-owner $tor_uid -j ACCEPT
 
-# create new chain "lan"
--N lan
+# create new chain "LAN"
+-N LAN
 
 # allow already active connections to localhost
 -A INPUT -m state --state ESTABLISHED -j ACCEPT
@@ -211,36 +228,36 @@ COMMIT
 # allow reply ICMP to loopback
 -A OUTPUT -o lo -p icmp -m state --state RELATED -j ACCEPT
 
-# allow TCP to loopback on port 9040 (transport) and 9050 (SOCKS)
--A OUTPUT -d 127.0.0.1/32 -o lo -p tcp -m tcp --dport 9040 -j ACCEPT
--A OUTPUT -d 127.0.0.1/32 -o lo -p tcp -m tcp --dport 9050 -j ACCEPT
+# allow TCP to loopback on port $tor_trans_port (transport) and $tor_socks_port (SOCKS)
+-A OUTPUT -o lo -p tcp --dport $tor_trans_port -j ACCEPT
+-A OUTPUT --dst 127.0.0.1/32 -o lo -p tcp --dport $tor_socks_port -j ACCEPT
 
-# allow DNS to loopback on port 5353
--A OUTPUT -d 127.0.0.1/32 -o lo -p udp -m udp --dport 5353 -j ACCEPT
+# allow DNS to loopback on port $tor_dns_port
+-A OUTPUT -o lo -p udp --dport $tor_dns_port -j ACCEPT
 
-# put local traffic in "lan" chain
--A OUTPUT -d 10.0.0.0/8 -j lan
--A OUTPUT -d 172.16.0.0/12 -j lan
--A OUTPUT -d 192.168.0.0/16 -j lan
+# put local traffic in "LAN" chain
+-A OUTPUT --dst 10.0.0.0/8 -j LAN
+-A OUTPUT --dst 172.16.0.0/12 -j LAN
+-A OUTPUT --dst 192.168.0.0/16 -j LAN
 
 # block all other outbound traffic on filter chain
 -A OUTPUT -j REJECT --reject-with icmp-port-unreachable
 
 # prevent all host resolution on LAN (to avoid DNS leaks)
--A lan -p tcp -m tcp --dport 53 -j REJECT --reject-with icmp-port-unreachable
--A lan -p udp -m udp --dport 53 -j REJECT --reject-with icmp-port-unreachable
--A lan -p tcp -m tcp --dport 137 -j REJECT --reject-with icmp-port-unreachable
--A lan -p udp -m udp --dport 137 -j REJECT --reject-with icmp-port-unreachable
+-A LAN -p tcp --dport 53 -j REJECT --reject-with icmp-port-unreachable
+-A LAN -p udp --dport 53 -j REJECT --reject-with icmp-port-unreachable
+-A LAN -p tcp --dport 137 -j REJECT --reject-with icmp-port-unreachable
+-A LAN -p udp --dport 137 -j REJECT --reject-with icmp-port-unreachable
 
 # allow all other traffic on LAN
--A lan -j ACCEPT
+-A LAN -j ACCEPT
 
 COMMIT
 EOF
 
 	# handles Debian and Arch
 	if [ -d '/etc/network/if-pre-up.d' ]; then
-		cat <<EOF > /etc/network/if-pre-qup.d/iptables
+		cat <<EOF > /etc/network/if-pre-up.d/iptables
 #!/bin/sh
 iptables-restore < $iptables_rules
 EOF
