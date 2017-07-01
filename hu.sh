@@ -8,7 +8,7 @@ version=0.1
 vim_config="$(find /etc -maxdepth 3 -type f -name 'vimrc' 2>/dev/null | head -n 1)"
 journald_config='/etc/systemd/journald.conf'
 
-tor_uid=$(id -u tor) 2>/dev/null || tor_uid=$(id -u debian-tor) 2>/dev/null
+tor_uid=$(id -u tor 2>/dev/null) || tor_uid=$(id -u debian-tor 2>/dev/null)
 tor_config="$(find /etc -maxdepth 3 -type f -name 'torrc' 2>/dev/null | head -n 1)"
 tor_dns_port=5353
 tor_trans_port=9040
@@ -212,33 +212,43 @@ COMMIT
 :FORWARD DROP
 :OUTPUT DROP
 
-# PREVENT LEAKS
-iptables -A OUTPUT -m conntrack --ctstate INVALID -j DROP
-iptables -A OUTPUT -m state --state INVALID -j DROP
-iptables -I OUTPUT ! -o lo ! -d 127.0.0.1 ! -s 127.0.0.1 -p tcp -m tcp --tcp-flags ACK,FIN ACK,FIN -j DROP
-iptables -I OUTPUT ! -o lo ! -d 127.0.0.1 ! -s 127.0.0.1 -p tcp -m tcp --tcp-flags ACK,RST ACK,RST -j DROP
-
-# allow traffic from "$tor_user" user
--A OUTPUT -m owner --uid-owner $tor_uid -j ACCEPT
-
 # create new chain "LAN"
 -N LAN
 
-# allow already active connections to localhost
+
+### INPUT ###
+
+# keep established connections
 -A INPUT -m state --state ESTABLISHED -j ACCEPT
 
-# allow incoming traffic from loopback
+# allow input from loopback
 -A INPUT -i lo -j ACCEPT
+
+# drop all incoming unsolicited traffic
+-A INPUT -j DROP
+
+
+### OUTPUT ###
+
+# PREVENT LEAKS
+-A OUTPUT -m conntrack --ctstate INVALID -j DROP
+-A OUTPUT -m state --state INVALID -j DROP
+-I OUTPUT ! -o lo ! -d 127.0.0.1 ! -s 127.0.0.1 -p tcp -m tcp --tcp-flags ACK,FIN ACK,FIN -j DROP
+-I OUTPUT ! -o lo ! -d 127.0.0.1 ! -s 127.0.0.1 -p tcp -m tcp --tcp-flags ACK,RST ACK,RST -j DROP
+
+#allow Tor process output
+-A OUTPUT ! -o lo -m owner --uid-owner $tor_uid -p tcp -m tcp --tcp-flags FIN,SYN,RST,ACK SYN -m state --state NEW -j ACCEPT
+
+#allow loopback output
+-A OUTPUT -d 127.0.0.1/32 -o lo -j ACCEPT
+
+#tor transproxy magic
+-A OUTPUT -d 127.0.0.1/32 -p tcp -m tcp --dport $tor_trans_port --tcp-flags FIN,SYN,RST,ACK SYN -j ACCEPT
 
 # allow already active connections from localhost
 -A OUTPUT -m state --state ESTABLISHED -j ACCEPT
 
-# allow reply ICMP to loopback
--A OUTPUT -o lo -p icmp -m state --state RELATED -j ACCEPT
 
-# allow TCP to loopback on port $tor_trans_port (transport) and $tor_socks_port (SOCKS)
--A OUTPUT -o lo -p tcp --dport $tor_trans_port -j ACCEPT
--A OUTPUT --dst 127.0.0.1/32 -o lo -p tcp --dport $tor_socks_port -j ACCEPT
 
 # allow DNS to loopback on port $tor_dns_port
 -A OUTPUT -o lo -p udp --dport $tor_dns_port -j ACCEPT
