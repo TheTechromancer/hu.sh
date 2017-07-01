@@ -139,7 +139,7 @@ disable_systemd_logging() {
 	# delete logs and restart journal service
 	# journalctl is for plebes
 	systemctl stop systemd-journald.service 2>/dev/null
-	for logfile in $(find /var/log/journal -type f); do shred $logfile; done
+	for logfile in $(find /var/log/journal -type f 2>/dev/null); do shred $logfile; done
 	rm -rf /var/log/journal/*
 	systemctl start systemd-journald.service
 
@@ -162,6 +162,7 @@ torify_system() {
 	cat <<EOF > $tor_config
 SocksPort $tor_socks_port
 DNSPort $tor_dns_port
+AutomapHostsOnResolve 1
 TransPort $tor_trans_port
 VirtualAddrNetworkIPv4 $tor_net_range
 EOF
