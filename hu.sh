@@ -13,6 +13,7 @@ tor_config="$(find /etc -maxdepth 3 -type f -name 'torrc' 2>/dev/null | head -n 
 tor_dns_port=5353
 tor_trans_port=9040
 tor_socks_port=9050
+tor_net_range=10.192.0.0/10
 
 resolvconf="$(readlink -f /etc/resolv.conf)"
 iptables_dir=/etc/iptables
@@ -162,6 +163,7 @@ torify_system() {
 SocksPort $tor_socks_port
 DNSPort $tor_dns_port
 TransPort $tor_trans_port
+VirtualAddrNetworkIPv4 $tor_net_range
 EOF
 
 	systemctl enable tor.service
@@ -170,19 +172,6 @@ EOF
 	# write iptables rule file
 	mkdir "$iptables_dir"
 	cat <<EOF > $iptables_rules
-#
-# mangle table
-#
-
-*mangle
-
-# transparently proxy all TCP traffic (that's not already going to Tor's SOCKS port)
--A PREROUTING -p tcp --dst 127.0.0.1 --dport 9050 -j RETURN
--A PREROUTING -p tcp -m owner ! --uid-owner $tor_uid -j TPROXY --on-ip 127.0.0.1 --on-port $tor_trans_port
-
-COMMIT
-
-
 #
 # NAT table
 #
@@ -198,6 +187,17 @@ COMMIT
 # redirect all DNS queries to tor
 -A PREROUTING -p udp --dport 53 -j DNAT --to-destination 127.0.0.1:$tor_dns_port
 
+# proxy .onion addresses
+-A OUTPUT -d $tor_net_range -p tcp -m tcp --tcp-flags FIN,SYN,RST,ACK SYN -j REDIRECT --to-ports $tor_trans_port
+
+# exclude Tor, SOCKS, local traffic
+-A OUTPUT -p tcp -m owner --uid-owner $tor_uid -j RETURN
+-A OUTPUT -p tcp --dst 127.0.0.1 --dport $tor_socks_port -j RETURN
+-A OUTPUT -o lo -j RETURN
+
+# proxy everything else
+-A OUTPUT ! -d 127.0.0.1 -m owner ! --uid-owner $tor_uid -p tcp -j REDIRECT --to-ports $tor_trans_port
+
 COMMIT
 
 
@@ -211,6 +211,12 @@ COMMIT
 :INPUT DROP
 :FORWARD DROP
 :OUTPUT DROP
+
+# PREVENT LEAKS
+iptables -A OUTPUT -m conntrack --ctstate INVALID -j DROP
+iptables -A OUTPUT -m state --state INVALID -j DROP
+iptables -I OUTPUT ! -o lo ! -d 127.0.0.1 ! -s 127.0.0.1 -p tcp -m tcp --tcp-flags ACK,FIN ACK,FIN -j DROP
+iptables -I OUTPUT ! -o lo ! -d 127.0.0.1 ! -s 127.0.0.1 -p tcp -m tcp --tcp-flags ACK,RST ACK,RST -j DROP
 
 # allow traffic from "$tor_user" user
 -A OUTPUT -m owner --uid-owner $tor_uid -j ACCEPT
