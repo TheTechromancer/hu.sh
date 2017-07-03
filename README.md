@@ -17,10 +17,10 @@ Use the one-liner, if you're feeling adventurous :)
 
 </ul>
 
-### usage: hu.sh [option]<br>
+### Usage: hu.sh [option]
 
-  Options:<br>
+	Options:
 
-     -d   Don't torify<br>
-     -o   Only torify<br>
-     -h   Help
+	  -d   Don't torify
+	  -o   Only torify
+	  -h   Help

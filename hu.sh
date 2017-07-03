@@ -30,7 +30,7 @@ required_progs=( 'iptables' 'tor' 'systemctl' )
 usage() {
 	cat <<EOF
 ${0##*/} version $version
-usage: ${0##*/} [option]
+Usage: ${0##*/} [option]
 
   Options:
 
