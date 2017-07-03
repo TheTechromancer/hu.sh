@@ -9,7 +9,7 @@ Use the one-liner, if you're feeling adventurous :)
 #### Performs the following tasks:
 
 <ul>
-	<li>Deletes and disables bash history for all users</li>
+	<li>Deletes and disables bash history for all users (up-arrow in terminal still works)</li>
 	<li>Deletes and disables python history for all users</li>
 	<li>Deletes and disables Vim history (~/.viminfo) for all users</li>
 	<li>Deletes all journald logs &amp; disables logging to persistant storage (systemd only)</li>

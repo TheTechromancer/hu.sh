@@ -322,6 +322,7 @@ hush() {
 	if [ $torify = true ]; then
 
 		printf '\n[!] YOU ARE RESPONSIBLE FOR VERIFYING THAT TOR IS WORKING\n'
+		printf '[!] THIS IS NOT A SUBSTITUTE FOR TAILS'
 		printf '[*] Using SOCKS on port 9050 is still recommended\n'
 
 		printf '\n[+] Checking programs\n'
