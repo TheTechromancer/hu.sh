@@ -3,7 +3,7 @@
 
 <br>
 
-Pipe into bash - if you're feeling adventurous :)
+Use the one-liner, if you're feeling adventurous :)
 #### bash -c "$(wget -O - https://raw.githubusercontent.com/TheTechromancer/hu.sh/master/hu.sh)"
 
 #### Performs the following tasks:
@@ -13,7 +13,14 @@ Pipe into bash - if you're feeling adventurous :)
 	<li>Deletes and disables python history for all users</li>
 	<li>Deletes and disables Vim history (~/.viminfo) for all users</li>
 	<li>Deletes all journald logs &amp; disables logging to persistant storage (systemd only)</li>
-	<br>
-	<li>Coming soon: Tor'ifying the system!
+	<li>Tor'ifies the system</li>
 
 </ul>
+
+###usage: hu.sh [option]
+<br>
+  Options:
+<br>
+     -d   Don't torify
+     -o   Only torify
+     -h   Help

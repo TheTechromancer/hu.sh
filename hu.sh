@@ -5,6 +5,8 @@
 #
 
 version=0.1
+torify=true
+nohistory=true
 vim_config="$(find /etc -maxdepth 3 -type f -name 'vimrc' 2>/dev/null | head -n 1)"
 journald_config='/etc/systemd/journald.conf'
 
@@ -28,7 +30,13 @@ required_progs=( 'iptables' 'tor' 'systemctl' )
 usage() {
 	cat <<EOF
 ${0##*/} version $version
-usage: ${0##*/}
+usage: ${0##*/} [option]
+
+  Options:
+
+	-d	Don't torify
+	-o	Only torify
+	-h	Help
 
   Programs required:
 
@@ -149,8 +157,9 @@ torify_system() {
 
 	# fix resolv.conf
 	rm /etc/resolv.conf
-	printf 'nameserver 127.0.0.1\n' > /etc/resolv.conf
-	chattr +i /etc/resolv.conf
+	printf 'nameserver 127.0.0.1' > /etc/resolv.conf
+	chmod 444 /etc/resolv.conf
+	chattr +i /etc/resolv.conf 2>/dev/null | printf "[!] If /etc/resolv.conf is overwritten, DNS breaks.\n    Make sure 127.0.0.1 is the only DNS server."
 
 	# make backup of tor config
 	if [ ! -f "$tor_config.bak" ]; then
@@ -215,7 +224,6 @@ COMMIT
 
 # create new chain "LAN"
 -N LAN
-
 
 ### INPUT ###
 
@@ -295,22 +303,32 @@ hush() {
 	printf '\n[+] Checking root\n'
 	check_root
 
-	printf '[+] Disabling bash history\n'
-	hash bash 2>/devnull && disable_bash_history
+	if [ $nohistory = true ]; then
 
-	printf '[+] Disabling python history\n'
-	hash python 2>/dev/null && disable_python_history
+		printf '[+] Disabling bash history\n'
+		hash bash 2>/devnull && disable_bash_history
 
-	printf '[+] Disabling Vim history\n'
-	hash vim 2>/dev/null && disable_vim_history
+		printf '[+] Disabling python history\n'
+		hash python 2>/dev/null && disable_python_history
 
-	printf '[+] Disabling systemd logging\n'
-	hash journalctl 2>/dev/null && disable_systemd_logging
+		printf '[+] Disabling Vim history\n'
+		hash vim 2>/dev/null && disable_vim_history
 
-	printf '\n[+] Checking programs\n'
-	check_progs
-	printf '[+] Torifying system\n'
-	torify_system
+		printf '[+] Disabling systemd logging\n'
+		hash journalctl 2>/dev/null && disable_systemd_logging
+
+	fi
+
+	if [ $torify = true ]; then
+
+		printf '[!] YOU ARE RESPONSIBLE FOR VERIFYING THAT TOR IS WORKING'
+
+		printf '\n[+] Checking programs\n'
+		check_progs
+		printf '[+] Torifying system\n'
+		torify_system
+
+	fi
 
 	printf '[+] Done.\n'
 
@@ -321,5 +339,26 @@ hush() {
 #
 # Main Script
 #
+
+# parse arguments
+
+while :; do
+	case $1 in
+		-d|-D)
+			torify=false
+			break
+			;;
+		-o|-O)
+			nohistory=false
+			break
+			;;
+		-h|--help)
+			usage
+			;;
+		*)
+			break
+	esac
+	shift
+done
 
 hush
