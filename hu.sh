@@ -15,7 +15,6 @@ tor_trans_port=9040
 tor_socks_port=9050
 tor_net_range=10.192.0.0/10
 
-resolvconf="$(readlink -f /etc/resolv.conf)"
 iptables_dir=/etc/iptables
 iptables_rules="$iptables_dir/iptables.rules"
 iptables_restore_script='/etc/network/if-pre-up.d/iptables'
@@ -149,9 +148,9 @@ disable_systemd_logging() {
 torify_system() {
 
 	# fix resolv.conf
-	printf 'nameserver 127.0.0.1\n' > $resolvconf
-	chmod 444 $resolvconf
-	chattr +i $resolvconf
+	rm /etc/resolv.conf
+	printf 'nameserver 127.0.0.1\n' > /etc/resolv.conf
+	chattr +i /etc/resolv.conf
 
 	# make backup of tor config
 	if [ ! -f "$tor_config.bak" ]; then
@@ -171,7 +170,7 @@ EOF
 	systemctl start tor.service
 
 	# write iptables rule file
-	mkdir "$iptables_dir"
+	mkdir "$iptables_dir" 2>/dev/null
 	cat <<EOF > $iptables_rules
 #
 # NAT table
