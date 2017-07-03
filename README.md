@@ -13,14 +13,15 @@ Use the one-liner, if you're feeling adventurous :)
 	<li>Deletes and disables python history for all users</li>
 	<li>Deletes and disables Vim history (~/.viminfo) for all users</li>
 	<li>Deletes all journald logs &amp; disables logging to persistant storage (systemd only)</li>
-	<li>Tor'ifies the system</li>
+	<li>Torifies the entire system</li>
 
 </ul>
+<br>
 
-### Usage: hu.sh [option]
+	Usage: hu.sh [option]
 
-	Options:
+	  Options:
 
-	  -d   Don't torify
-	  -o   Only torify
-	  -h   Help
+	    -d   Don't torify
+	    -o   Only torify
+	    -h   Help
