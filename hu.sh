@@ -34,9 +34,10 @@ Usage: ${0##*/} [option]
 
   Options:
 
-	-d	Don't torify
-	-o	Only torify
-	-h	Help
+	-d		Don't torify
+	-o		Only torify
+	-a <port>	Allow incoming port (e.g. SSH)
+	-h		Help
 
   Programs required:
 
@@ -193,6 +194,9 @@ EOF
 :OUTPUT ACCEPT
 :POSTROUTING ACCEPT
 
+# allow incoming connections
+$incoming_statement
+
 # proxy all DNS queries
 -A OUTPUT -p udp --dport 5353 -j REDIRECT --to-ports $tor_dns_port
 -A OUTPUT -p udp --dport 53 -j REDIRECT --to-ports $tor_dns_port
@@ -322,7 +326,7 @@ hush() {
 	if [ $torify = true ]; then
 
 		printf '\n[!] YOU ARE RESPONSIBLE FOR VERIFYING THAT TOR IS WORKING\n'
-		printf '[!] THIS IS NOT A SUBSTITUTE FOR TAILS'
+		printf '[!] THIS IS NOT A SUBSTITUTE FOR TAILS\n'
 		printf '[*] Using SOCKS on port 9050 is still recommended\n'
 
 		printf '\n[+] Checking programs\n'
@@ -344,11 +348,19 @@ hush() {
 
 # parse arguments
 
+torify=true
+nohistory=true
+
 while :; do
 	case $1 in
 		-d|-D)
 			torify=false
 			break
+			;;
+		-a|-A)
+			shift
+			lan_int=$(ip -br addr show | grep -v 127\\..* | grep UP | head -n 1 | awk '{print $1}')
+			incoming_statement="sudo iptables -t nat -A PREROUTING -i $lan_int -p tcp --dport $1 -j REDIRECT --to-ports $1"
 			;;
 		-o|-O)
 			nohistory=false
