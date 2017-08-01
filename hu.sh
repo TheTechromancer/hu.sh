@@ -325,7 +325,7 @@ hush() {
 
 	if [ $torify = true ]; then
 
-		netstat -ntlp | grep ssh >/dev/null && printf '\n[!] If using SSH, please use -a to prevent locking yourself out!\n'
+		netstat -ntlp | grep ssh >/dev/null && (printf '\n[!] If using SSH, please use -a to prevent locking yourself out!\n'; sleep 5)
 
 		printf '\n[!] YOU ARE RESPONSIBLE FOR VERIFYING THAT TOR IS WORKING\n'
 		printf '[!] THIS IS NOT A SUBSTITUTE FOR TAILS\n'
