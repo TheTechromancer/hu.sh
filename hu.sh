@@ -325,6 +325,13 @@ hush() {
 
 	if [ $torify = true ]; then
 
+		# make sure we have variables
+		if [ -z $tor_uid ] || [ -z $tor_config ]; then
+			printf '\n[!] Unable to auto-populate tor variables - please fill in tor_config and tor_uid manually.\n'
+			exit 1
+		fi
+
+		# display warning if ssh daemon appears to be running
 		netstat -ntlp | grep ssh >/dev/null && (printf '\n[!] If using SSH, please use -a to prevent locking yourself out!\n'; sleep 5)
 
 		printf '\n[!] YOU ARE RESPONSIBLE FOR VERIFYING THAT TOR IS WORKING\n'
@@ -361,6 +368,11 @@ while :; do
 			;;
 		-a|-A)
 			shift
+			case $1 in
+				*[!0-9]*) printf '\n[!] Invalid port specified.\n\n'
+				exit 1
+				;;
+			esac
 			lan_int=$(ip -br addr show | grep -v 127\\..* | grep UP | head -n 1 | awk '{print $1}')
 			incoming_statement="-A PREROUTING -i $lan_int -p tcp --dport $1 -j REDIRECT --to-ports $1"
 			;;
