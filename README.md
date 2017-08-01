@@ -22,6 +22,7 @@ Use the one-liner, if you're feeling adventurous :)
 
 	  Options:
 
-	    -d   Don't torify
-	    -o   Only torify
-	    -h   Help
+	    -d         Don't torify
+	    -o         Only torify
+	    -a <port>  Allow incoming port
+	    -h         Help
