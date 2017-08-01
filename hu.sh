@@ -360,7 +360,7 @@ while :; do
 		-a|-A)
 			shift
 			lan_int=$(ip -br addr show | grep -v 127\\..* | grep UP | head -n 1 | awk '{print $1}')
-			incoming_statement="sudo iptables -t nat -A PREROUTING -i $lan_int -p tcp --dport $1 -j REDIRECT --to-ports $1"
+			incoming_statement="-A PREROUTING -i $lan_int -p tcp --dport $1 -j REDIRECT --to-ports $1"
 			;;
 		-o|-O)
 			nohistory=false
