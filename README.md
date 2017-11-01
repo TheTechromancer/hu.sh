@@ -24,5 +24,5 @@ Use the one-liner, if you're feeling adventurous :)
 
 	    -d         Don't torify
 	    -o         Only torify
-	    -a <port>  Allow incoming port
+	    -a <port>  Allow incoming port (e.g. SSH)
 	    -h         Help
