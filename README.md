@@ -4,7 +4,9 @@
 <br>
 
 Use the one-liner, if you're feeling adventurous :)
-	bash -c "$(wget -O - https://raw.githubusercontent.com/TheTechromancer/hu.sh/master/hu.sh)"
+~~~~
+bash -c "$(wget -O - https://raw.githubusercontent.com/TheTechromancer/hu.sh/master/hu.sh)"
+~~~~
 
 #### Performs the following tasks:
 
@@ -18,6 +20,7 @@ Use the one-liner, if you're feeling adventurous :)
 </ul>
 <br>
 
+~~~~
 	Usage: hu.sh [option]
 
 	  Options:
@@ -26,3 +29,4 @@ Use the one-liner, if you're feeling adventurous :)
 	    -o         Only torify
 	    -a <port>  Allow incoming port (e.g. SSH)
 	    -h         Help
+~~~~
