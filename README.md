@@ -30,3 +30,7 @@ bash -c "$(wget -O - https://raw.githubusercontent.com/TheTechromancer/hu.sh/mas
 	    -a <port>  Allow incoming port (e.g. SSH)
 	    -h         Help
 ~~~~
+=======
+
+## DISCLAIMER: NOT A REPLACEMENT FOR TAILS
+## It is your responsibility to check for leaks and verify things are working properly
