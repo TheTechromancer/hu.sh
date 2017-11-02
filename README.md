@@ -4,7 +4,7 @@
 <br>
 
 Use the one-liner, if you're feeling adventurous :)
-#### bash -c "$(wget -O - https://raw.githubusercontent.com/TheTechromancer/hu.sh/master/hu.sh)"
+	bash -c "$(wget -O - https://raw.githubusercontent.com/TheTechromancer/hu.sh/master/hu.sh)"
 
 #### Performs the following tasks:
 
