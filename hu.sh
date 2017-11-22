@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# TODO: 
+
 #
 # Defaults
 #
@@ -83,6 +85,16 @@ disable_bash_history() {
 		rm $histfile
 
 	done
+
+	# set HISTFILE variable in individual .bashrc's
+	for bashrc in $(find /home /root -maxdepth 2 -type f -name '.bashrc'); do
+
+		sed -i '/export HISTFILE=.*/c\' "$bashrc"
+		printf "export HISTFILE=/dev/null\n" >> "$bashrc"
+
+	done
+
+	# set HISTFILE variable in global .profile
 
 	# remove redundant lines in /etc/profile
 	sed -i '/export HISTFILE=.*/c\' /etc/profile
