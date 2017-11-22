@@ -137,11 +137,11 @@ disable_vim_history() {
 	done
 
 	# remove redundant lines in /etc/vimrc
-	sed -i '/let skip_defaults_vim=.*/c\' $vim_config
-	sed -i '/set viminfo=.*/c\' $vim_config
+	sed -i '/let skip_defaults_vim=.*/c\' "$vim_config"
+	sed -i '/set viminfo=.*/c\' "$vim_config"
 
 	# disable viminfo
-	printf 'let skip_defaults_vim=1\nset viminfo=""' >> $vim_config
+	printf 'let skip_defaults_vim=1\nset viminfo=""' >> "$vim_config"
 
 }
 
