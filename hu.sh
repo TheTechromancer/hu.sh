@@ -107,6 +107,8 @@ disable_bash_history() {
 
 disable_python_history() {
 
+	# currently only works on history files in /root or /home
+
 	# delete python history for all users
 	for histfile in $(find /home /root -maxdepth 2 -type f -name '.python_history'); do
 
@@ -116,8 +118,7 @@ disable_python_history() {
 	done
 
 	# create immutable file to block access
-	# "/var/lib/" avoids blocking .python_history access for postgres, couchdb, etc.
-	for homedir in $(grep -v '/nologin\|/false' /etc/passwd | cut -d: -f6 | grep -v '^/$' | grep '^/root\|^/home'); do 
+	for homedir in $(grep -v '/nologin$\|/false$' /etc/passwd | cut -d: -f6 | grep -v '^/$' | grep '^/root\|^/home'); do 
 
 		touch $homedir/.python_history 2>/dev/null
 		chattr +i $homedir/.python_history
