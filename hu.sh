@@ -117,7 +117,7 @@ disable_python_history() {
 
 	# create immutable file to block access
 	# "/var/lib/" avoids blocking .python_history access for postgres, couchdb, etc.
-	for homedir in $(grep -v '/nologin\|/false\|/var/lib/' /etc/passwd | cut -d: -f6 | grep -v '^/$'); do 
+	for homedir in $(grep -v '/nologin\|/false' /etc/passwd | cut -d: -f6 | grep -v '^/$' | grep '^/root\|^/home'); do 
 
 		touch $homedir/.python_history 2>/dev/null
 		chattr +i $homedir/.python_history
