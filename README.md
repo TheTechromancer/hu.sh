@@ -11,17 +11,18 @@ bash -c "$(wget -O - https://raw.githubusercontent.com/TheTechromancer/hu.sh/mas
 #### Performs the following tasks:
 
 <ul>
+	<li>Randomizes all MAC addresses on each boot</li>
 	<li>Deletes and disables bash history for all users (up-arrow in terminal still works)</li>
 	<li>Deletes and disables python history for all users</li>
 	<li>Deletes and disables Vim history (~/.viminfo) for all users</li>
 	<li>Deletes all journald logs &amp; disables logging to persistant storage (systemd only)</li>
 	<li>Torifies the entire system</li>
-
 </ul>
+
 <br>
 
 ~~~~
-	Usage: hu.sh [option]
+	Usage: hu.sh [options]
 
 	  Options:
 
