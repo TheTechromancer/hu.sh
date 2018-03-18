@@ -1,16 +1,14 @@
 #!/bin/bash
 
-# TODO: 
-
 #
 # Defaults
 #
 
-version=0.1
 torify=true
 nohistory=true
 vim_config="$(find /etc -maxdepth 3 -type f -name 'vimrc' 2>/dev/null | head -n 1)"
 journald_config='/etc/systemd/journald.conf'
+macchanger_script='/usr/local/bin/macchanger_all.sh'
 
 tor_uid=$(id -u tor 2>/dev/null) || tor_uid=$(id -u debian-tor 2>/dev/null)
 tor_config="$(find /etc -maxdepth 3 -type f -name 'torrc' 2>/dev/null | head -n 1)"
@@ -24,14 +22,14 @@ iptables_rules="$iptables_dir/iptables.rules"
 iptables_restore_script='/etc/network/if-pre-up.d/iptables'
 
 # names of executables used in script
-required_progs=( 'iptables' 'tor' 'systemctl' )
+required_progs=( 'systemctl' 'macchanger' 'ip')
 
 
 ### FUNCTIONS ###
 
 usage() {
 	cat <<EOF
-${0##*/} version $version
+${0##*/}
 Usage: ${0##*/} [option]
 
   Options:
@@ -164,6 +162,33 @@ disable_systemd_logging() {
 	for logfile in $(find /var/log/journal -type f 2>/dev/null); do shred $logfile; done
 	rm -rf /var/log/journal/*
 	systemctl start systemd-journald.service
+
+}
+
+
+randomize_macs() {
+
+	echo -n '#!/bin/bash
+for ifc in $(ip -o link | awk '{print $2}' | cut -d: -f1 | grep -v '^lo$'); do
+	ip link set down dev $ifc
+	/usr/bin/macchanger -r $ifc
+	ip link set up dev $ifc
+done' > "$macchanger_script"
+
+	cat <<EOF > '/etc/systemd/system/macchanger_all.service'
+[Unit]
+Description=Randomize MAC address at boot time with macchanger
+Before=network.target
+
+[Service]
+Type=oneshot
+ExecStart=$macchanger_script
+
+[Install]
+Alias=multi-user.target.wants/macchanger_all.service'
+EOF
+
+	systemctl enable macchanger_all.service
 
 }
 
@@ -318,8 +343,14 @@ EOF
 
 hush() {
 
+	if [ $torify = true ]; then
+		required_progs+=('tor' 'iptables')
+	fi
+
 	printf '\n[+] Checking root\n'
 	check_root
+	printf '\n[+] Checking programs\n'
+	check_progs
 
 	if [ $nohistory = true ]; then
 
@@ -335,9 +366,14 @@ hush() {
 		printf '[+] Disabling systemd logging\n'
 		hash journalctl 2>/dev/null && disable_systemd_logging
 
+		printf '[+] Randomizing MAC addresses on boot\n'
+		randomize_macs
+
 	fi
 
 	if [ $torify = true ]; then
+
+		required_progs+=('tor')
 
 		# make sure we have variables
 		if [ -z $tor_uid ] || [ -z $tor_config ]; then
@@ -352,8 +388,6 @@ hush() {
 		printf '[!] THIS IS NOT A SUBSTITUTE FOR TAILS\n'
 		printf '[*] Using SOCKS on port 9050 is still recommended\n'
 
-		printf '\n[+] Checking programs\n'
-		check_progs
 		printf '[+] Torifying system\n'
 		torify_system
 
