@@ -185,7 +185,7 @@ Type=oneshot
 ExecStart=$macchanger_script
 
 [Install]
-Alias=multi-user.target.wants/macchanger_all.service'
+Alias=multi-user.target.wants/macchanger_all.service
 EOF
 
 	systemctl enable macchanger_all.service
