@@ -188,7 +188,7 @@ ExecStart=$macchanger_script
 Alias=multi-user.target.wants/macchanger_all.service
 EOF
 
-	systemctl enable macchanger_all.service
+	systemctl enable macchanger_all.service >/dev/null
 
 }
 
