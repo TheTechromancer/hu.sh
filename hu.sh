@@ -169,11 +169,13 @@ disable_systemd_logging() {
 randomize_macs() {
 
 	echo -n '#!/bin/bash
-for ifc in $(ip -o link | awk '{print $2}' | cut -d: -f1 | grep -v '^lo$'); do
+for ifc in $(ip -o link | awk "{print $2}" | cut -d: -f1 | grep -v '^lo$'); do
 	ip link set down dev $ifc
 	/usr/bin/macchanger -r $ifc
 	ip link set up dev $ifc
 done' > "$macchanger_script"
+	
+	chmod +x "$macchanger_script"
 
 	cat <<EOF > '/etc/systemd/system/macchanger_all.service'
 [Unit]
