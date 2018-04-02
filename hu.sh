@@ -76,26 +76,24 @@ disable_bash_history() {
 
 	# note: up-arrow in shell still works
 
-	# delete bash history for all users
-	for histfile in $(find /home /root -maxdepth 2 -type f -name '.bash_history'); do
-
-		shred $histfile 2>/dev/null
-		rm $histfile
-
-	done
-
 	# set HISTFILE variable in individual .bashrc's
-	for bashrc in $(find /home /root -maxdepth 2 -type f -name '.bashrc'); do
+	for homedir in $(grep -v '/nologin$\|/false$' /etc/passwd | cut -d: -f6 | grep -v '^/$' | grep '^/root\|^/home'); do
 
-		sed -i '/export HISTFILE=.*/c\' "$bashrc"
-		printf "export HISTFILE=/dev/null\n" >> "$bashrc"
+		# overwrite, truncate, and restrict access to bash history files
+		shred "$homedir/.bash_history" 2>/dev/null
+		rm "$homedir/.bash_history" 2>/dev/null
+		touch "$homedir/.bash_history" 2>/dev/null
+		chattr +i "$homedir/.bash_history" 2>/dev/null
+
+		sed -i '/export HISTFILE=.*/c\' "$homedir/.bashrc" 2>/dev/null
+		printf "export HISTFILE=/dev/null\n" >> "$homedir/.bashrc"
 
 	done
 
 	# set HISTFILE variable in global .profile
 
 	# remove redundant lines in /etc/profile
-	sed -i '/export HISTFILE=.*/c\' /etc/profile
+	sed -i '/export HISTFILE=.*/c\' /etc/profile 2>/dev/null
 
 	# send all history to /dev/null
 	printf "export HISTFILE=/dev/null\n" >> /etc/profile
@@ -108,19 +106,15 @@ disable_python_history() {
 	# currently only works on history files in /root or /home
 
 	# delete python history for all users
-	for histfile in $(find /home /root -maxdepth 2 -type f -name '.python_history'); do
-
-		shred $histfile 2>/dev/null
-		rm $histfile 2>/dev/null
-	
-	done
-
-	# create immutable file to block access
 	for homedir in $(grep -v '/nologin$\|/false$' /etc/passwd | cut -d: -f6 | grep -v '^/$' | grep '^/root\|^/home'); do 
 
-		touch $homedir/.python_history 2>/dev/null
-		chattr +i $homedir/.python_history
-	
+		shred "$homedir/.python_history" 2>/dev/null
+		rm "$homedir/.python_history" 2>/dev/null
+		touch "$homedir/.python_history" 2>/dev/null
+
+		# create immutable file to block access
+		chattr +i "$homedir/.python_history" 2>/dev/null
+
 	done
 
 }
@@ -168,8 +162,17 @@ disable_systemd_logging() {
 
 randomize_macs() {
 
-	echo -n '#!/bin/bash
-for ifc in $(ip -o link | awk '\''{print $2}'\'' | cut -d: -f1 | grep -v '\''^lo$'\''); do
+echo -n '#!/bin/bash
+if [[ ! $(cat /proc/cpuinfo | grep hypervisor) ]]; then
+
+	for ifc in $(ip -o link | awk '\''{print $2}'\'' | cut -d: -f1 | grep '\''^eno|\^ens|\^enp\|^enx\|^eth'\''); do
+		ip link set down dev $ifc
+		/usr/bin/macchanger -r $ifc
+	done
+
+fi
+
+for ifc in $(ip -o link | awk '\''{print $2}'\'' | cut -d: -f1 | grep '\''^wlp\|^wlan'\''); do
 	ip link set down dev $ifc
 	/usr/bin/macchanger -r $ifc
 done' > "$macchanger_script"
