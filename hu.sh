@@ -167,7 +167,7 @@ if [[ ! $(cat /proc/cpuinfo | grep hypervisor) ]]; then
 
 	for ifc in $(ip -o link | awk '\''{print $2}'\'' | cut -d: -f1 | grep '\''^eno|\^ens|\^enp\|^enx\|^eth'\''); do
 		ip link set down dev $ifc
-		/usr/bin/macchanger -r $ifc
+		/usr/bin/macchanger -b -r $ifc
 	done
 
 fi
