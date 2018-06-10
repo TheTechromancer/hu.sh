@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# by TheTechromancer
+
 #
 # Defaults
 #
@@ -22,7 +24,7 @@ iptables_rules="$iptables_dir/iptables.rules"
 iptables_restore_script='/etc/network/if-pre-up.d/iptables'
 
 # names of executables used in script
-required_progs=( 'systemctl' 'macchanger' 'ip')
+required_progs=( 'systemctl' 'macchanger' 'ip' )
 
 
 ### FUNCTIONS ###
@@ -162,6 +164,7 @@ disable_systemd_logging() {
 
 randomize_macs() {
 
+# use echo to avoid variable replacement
 echo -n '#!/bin/bash
 if [[ ! $(cat /proc/cpuinfo | grep hypervisor) ]]; then
 
