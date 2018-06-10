@@ -2,9 +2,8 @@
 
 # by TheTechromancer
 
-#
-# Defaults
-#
+
+### DEFAULTS ###
 
 torify=true
 nohistory=true
@@ -407,9 +406,7 @@ hush() {
 
 
 
-#
-# Main Script
-#
+### MAIN SCRIPT ###
 
 # parse arguments
 
