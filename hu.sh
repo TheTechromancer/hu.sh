@@ -87,7 +87,7 @@ disable_bash_history() {
 		chattr +i "$homedir/.bash_history" 2>/dev/null
 
 		sed -i '/export HISTFILE=.*/c\' "$homedir/.bashrc" 2>/dev/null
-		printf "export HISTFILE=/dev/null\n" >> "$homedir/.bashrc"
+		printf '\nexport HISTFILE=/dev/null\n' >> "$homedir/.bashrc"
 
 	done
 
@@ -97,7 +97,7 @@ disable_bash_history() {
 	sed -i '/export HISTFILE=.*/c\' /etc/profile 2>/dev/null
 
 	# send all history to /dev/null
-	printf "export HISTFILE=/dev/null\n" >> /etc/profile
+	printf '\nexport HISTFILE=/dev/null\n' >> /etc/profile
 
 }
 
@@ -136,7 +136,7 @@ disable_vim_history() {
 	sed -i '/set viminfo=.*/c\' "$vim_config"
 
 	# disable viminfo
-	printf 'let skip_defaults_vim=1\nset viminfo=""' >> "$vim_config"
+	printf '\nlet skip_defaults_vim=1\nset viminfo=""\n' >> "$vim_config"
 
 }
 
@@ -148,7 +148,7 @@ disable_systemd_logging() {
 	sed -i '/.*RuntimeMaxUse=.*/c\RuntimeMaxUse=5M' $journald_config
 
 	# if there are no current values, append lines to file
-	grep 'Storage=volatile' $journald_config >/dev/null || printf 'Storage=volatile\n' >> $journald_config
+	grep 'Storage=volatile' $journald_config >/dev/null || printf '\nStorage=volatile\n' >> $journald_config
 	grep 'RuntimeMaxUse=5M' $journald_config >/dev/null || printf 'RuntimeMaxUse=5M\n' >> $journald_config
 
 	# delete logs and restart journal service
