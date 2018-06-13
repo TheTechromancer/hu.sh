@@ -222,8 +222,8 @@ TransPort $tor_trans_port
 VirtualAddrNetworkIPv4 $tor_net_range
 EOF
 
-	systemctl enable tor.service
-	systemctl start tor.service
+	systemctl enable tor.service >/dev/null 2>&1
+	systemctl start tor.service >/dev/null 2>&1
 
 	# write iptables rule file
 	mkdir "$iptables_dir" 2>/dev/null
