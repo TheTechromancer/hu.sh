@@ -356,12 +356,12 @@ hush() {
 
 	printf '\n[+] Checking root\n'
 	check_root
-	printf '\n[+] Checking programs\n'
+	printf '[+] Checking programs\n'
 	check_progs
 
 	if [ $nohistory = true ]; then
 
-		printf '[+] Disabling bash history\n'
+		printf '\n[+] Disabling bash history\n'
 		hash bash 2>/devnull && disable_bash_history
 
 		printf '[+] Disabling python history\n'
@@ -400,7 +400,7 @@ hush() {
 
 	fi
 
-	printf '[+] Done.\n'
+	printf '[+] Done.\n\n'
 
 }
 
