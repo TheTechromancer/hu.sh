@@ -23,7 +23,7 @@ iptables_rules="$iptables_dir/iptables.rules"
 iptables_restore_script='/etc/network/if-pre-up.d/iptables'
 
 # names of executables used in script
-required_progs=( 'systemctl' 'macchanger' 'ip' )
+required_progs=( 'systemctl' 'ip' )
 
 
 ### FUNCTIONS ###
@@ -163,6 +163,8 @@ disable_systemd_logging() {
 
 randomize_macs() {
 
+	command -v 'macchanger' >/dev/null 2>&1 || (printf '[!] WARNING: macchanger is not installed - skipping MAC randomization\n'; return)
+
 # use echo to avoid variable replacement
 echo -n '#!/bin/bash
 if [[ ! $(cat /proc/cpuinfo | grep hypervisor) ]]; then
@@ -206,7 +208,7 @@ torify_system() {
 	rm /etc/resolv.conf
 	printf 'nameserver 127.0.0.1' > /etc/resolv.conf
 	chmod 444 /etc/resolv.conf
-	chattr +i /etc/resolv.conf 2>/dev/null | printf "[!] If /etc/resolv.conf is overwritten, DNS breaks.\n    Make sure 127.0.0.1 is the only DNS server."
+	chattr +i /etc/resolv.conf 2>/dev/null | printf "[!] If /etc/resolv.conf is overwritten, DNS breaks.\n    Make sure 127.0.0.1 is the only DNS server.\n\n"
 
 	# make backup of tor config
 	if [ ! -f "$tor_config.bak" ]; then
