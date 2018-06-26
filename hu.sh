@@ -163,7 +163,7 @@ disable_systemd_logging() {
 
 randomize_macs() {
 
-	command -v 'macchanger' >/dev/null 2>&1 || (printf '[!] WARNING: macchanger is not installed - skipping MAC randomization\n'; return)
+	command -v 'macchanger' >/dev/null 2>&1 || (printf '[!] WARNING: please install macchanger to enable MAC randomization\n')
 
 # use echo to avoid variable replacement
 echo -n '#!/bin/bash
