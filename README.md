@@ -12,8 +12,8 @@ bash -c "$(wget -O - https://raw.githubusercontent.com/TheTechromancer/hu.sh/mas
 
 <ul>
 	<li>Randomizes all MAC addresses on each boot</li>
-	<li>Deletes and disables Bash history for all users (up-arrow in terminal still works)</li>
-	<li>Deletes and disables Python history for all users</li>
+	<li>Deletes and disables Bash history (~/.bash_history) for all users (up-arrow in terminal still works)</li>
+	<li>Deletes and disables Python history (~/.python_history) for all users</li>
 	<li>Deletes and disables Vim history (~/.viminfo) for all users</li>
 	<li>Deletes and disables wget hosts history (~/.wget-hsts) for all users</li>
 	<li>Deletes all journald logs &amp; disables logging to persistant storage (systemd only)</li>
