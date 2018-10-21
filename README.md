@@ -12,24 +12,25 @@ bash -c "$(wget -O - https://raw.githubusercontent.com/TheTechromancer/hu.sh/mas
 
 <ul>
 	<li>Randomizes all MAC addresses on each boot</li>
-	<li>Deletes and disables bash history for all users (up-arrow in terminal still works)</li>
-	<li>Deletes and disables python history for all users</li>
+	<li>Deletes and disables Bash history for all users (up-arrow in terminal still works)</li>
+	<li>Deletes and disables Python history for all users</li>
 	<li>Deletes and disables Vim history (~/.viminfo) for all users</li>
+	<li>Deletes and disables wget hosts history (~/.wget-hsts) for all users</li>
 	<li>Deletes all journald logs &amp; disables logging to persistant storage (systemd only)</li>
-	<li>Torifies the entire system</li>
+	<li>Optionally, can Torify the entire system</li>
 </ul>
 
 <br>
 
 ~~~~
-	Usage: hu.sh [options]
+    Usage: hu.sh [options]
 
-	  Options:
+      Options:
 
-	    -d         Don't torify
-	    -o         Only torify
-	    -a <port>  Allow incoming port (e.g. SSH)
-	    -h         Help
+        -d         Don't Torify
+        -o         Only Torify
+        -a <port>  Allow incoming port (e.g. 22 for SSH; only applies if Torifying)
+        -h         Help
 ~~~~
 
 ## DISCLAIMER: NOT A REPLACEMENT FOR TAILS

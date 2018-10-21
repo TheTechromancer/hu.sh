@@ -11,6 +11,8 @@ vim_config="$(find /etc -maxdepth 3 -type f -name 'vimrc' 2>/dev/null | head -n 
 journald_config='/etc/systemd/journald.conf'
 macchanger_script='/usr/local/bin/macchanger_all.sh'
 
+homedirs=$(grep -v '/nologin$\|/false$' /etc/passwd | cut -d: -f6 | grep -v '^/$' | grep '^/root\|^/home')
+
 tor_uid=$(id -u tor 2>/dev/null) || tor_uid=$(id -u debian-tor 2>/dev/null)
 tor_config="$(find /etc -maxdepth 3 -type f -name 'torrc' 2>/dev/null | head -n 1)"
 tor_dns_port=5353
@@ -35,10 +37,10 @@ Usage: ${0##*/} [option]
 
   Options:
 
-	-d		Don't torify
-	-o		Only torify
-	-a <port>	Allow incoming port (e.g. SSH)
-	-h		Help
+    -d         Don't Torify
+    -o         Only Torify
+    -a <port>  Allow incoming port (e.g. 22 for SSH; only applies if Torifying)
+    -h         Help
 
   Programs required:
 
@@ -78,7 +80,7 @@ disable_bash_history() {
 	# note: up-arrow in shell still works
 
 	# set HISTFILE variable in individual .bashrc's
-	for homedir in $(grep -v '/nologin$\|/false$' /etc/passwd | cut -d: -f6 | grep -v '^/$' | grep '^/root\|^/home'); do
+	for homedir in $homedirs; do
 
 		# overwrite, truncate, and restrict access to bash history files
 		shred "$homedir/.bash_history" 2>/dev/null
@@ -107,7 +109,7 @@ disable_python_history() {
 	# currently only works on history files in /root or /home
 
 	# delete python history for all users
-	for homedir in $(grep -v '/nologin$\|/false$' /etc/passwd | cut -d: -f6 | grep -v '^/$' | grep '^/root\|^/home'); do 
+	for homedir in "$homedirs"; do 
 
 		shred "$homedir/.python_history" 2>/dev/null
 		rm "$homedir/.python_history" 2>/dev/null
@@ -124,12 +126,12 @@ disable_python_history() {
 disable_vim_history() {
 
 	# delete vim history for all users
-	for viminfo in $(find /home /root -maxdepth 2 -type f -name '.viminfo'); do
+	for homedir in "$homedirs"; do
 
-		shred $viminfo 2>/dev/null
-		>$viminfo
+		shred "$homedir/.viminfo" 2>/dev/null
+		>"$homedir/.viminfo"
 		# create immutable file to block access
-		chattr +i viminfo
+		chattr +i "$homedir/.viminfo"
 	
 	done
 
@@ -139,6 +141,20 @@ disable_vim_history() {
 
 	# disable viminfo
 	printf '\nlet skip_defaults_vim=1\nset viminfo=""\n' >> "$vim_config"
+
+}
+
+
+disable_wget_hsts() {
+
+	for homedir in "$homedirs"; do
+
+		shred "$homedir/.wget-hsts" 2>/dev/null
+		>"$homedir/.wget-hsts"
+		# create immutable file to block access
+		chattr +i "$homedir/.wget-hsts"
+	
+	done
 
 }
 
@@ -366,13 +382,16 @@ hush() {
 	if [ $nohistory = true ]; then
 
 		printf '\n[+] Disabling bash history\n'
-		hash bash 2>/devnull && disable_bash_history
+		disable_bash_history
 
 		printf '[+] Disabling python history\n'
-		hash python 2>/dev/null && disable_python_history
+		disable_python_history
 
-		printf '[+] Disabling Vim history\n'
-		hash vim 2>/dev/null && disable_vim_history
+		printf '[+] Disabling vim history\n'
+		disable_vim_history
+
+		printf '[+] Disabling wget history\n'
+		disable_wget_hsts
 
 		printf '[+] Disabling systemd logging\n'
 		hash journalctl 2>/dev/null && disable_systemd_logging
