@@ -114,8 +114,6 @@ disable_python_history() {
 		shred "$homedir/.python_history" 2>/dev/null
 		rm "$homedir/.python_history" 2>/dev/null
 		touch "$homedir/.python_history" 2>/dev/null
-
-		# create immutable file to block access
 		chattr +i "$homedir/.python_history" 2>/dev/null
 
 	done
@@ -129,9 +127,9 @@ disable_vim_history() {
 	for homedir in "$homedirs"; do
 
 		shred "$homedir/.viminfo" 2>/dev/null
-		>"$homedir/.viminfo"
-		# create immutable file to block access
-		chattr +i "$homedir/.viminfo"
+		rm "$homedir/.viminfo" 2>/dev/null
+		touch "$homedir/.viminfo" 2>/dev/null
+		chattr +i "$homedir/.viminfo" 2>/dev/null
 	
 	done
 
@@ -150,9 +148,9 @@ disable_wget_hsts() {
 	for homedir in "$homedirs"; do
 
 		shred "$homedir/.wget-hsts" 2>/dev/null
-		>"$homedir/.wget-hsts"
-		# create immutable file to block access
-		chattr +i "$homedir/.wget-hsts"
+		rm "$homedir/.wget-hsts" 2>/dev/null
+		touch "$homedir/.wget-hsts" 2>/dev/null
+		chattr +i "$homedir/.wget-hsts" 2>/dev/null
 	
 	done
 
