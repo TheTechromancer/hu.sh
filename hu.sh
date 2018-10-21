@@ -109,7 +109,7 @@ disable_python_history() {
 	# currently only works on history files in /root or /home
 
 	# delete python history for all users
-	for homedir in "$homedirs"; do 
+	for homedir in $homedirs; do 
 
 		shred "$homedir/.python_history" 2>/dev/null
 		rm "$homedir/.python_history" 2>/dev/null
@@ -124,7 +124,7 @@ disable_python_history() {
 disable_vim_history() {
 
 	# delete vim history for all users
-	for homedir in "$homedirs"; do
+	for homedir in $homedirs; do
 
 		shred "$homedir/.viminfo" 2>/dev/null
 		rm "$homedir/.viminfo" 2>/dev/null
@@ -145,7 +145,7 @@ disable_vim_history() {
 
 disable_wget_hsts() {
 
-	for homedir in "$homedirs"; do
+	for homedir in $homedirs; do
 
 		shred "$homedir/.wget-hsts" 2>/dev/null
 		rm "$homedir/.wget-hsts" 2>/dev/null
