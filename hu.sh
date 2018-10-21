@@ -127,7 +127,9 @@ disable_vim_history() {
 	for viminfo in $(find /home /root -maxdepth 2 -type f -name '.viminfo'); do
 
 		shred $viminfo 2>/dev/null
-		rm $viminfo
+		>$viminfo
+		# create immutable file to block access
+		chattr +i viminfo
 	
 	done
 
