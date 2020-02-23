@@ -204,12 +204,14 @@ randomize_macs() {
 	then
 		# randomize ethernet MACs
 		for ifc in $(ip -o link | awk '{print $2}' | cut -d: -f1 | grep '^en\|^eth'); do
+			printf "[+] Randomizing MAC for interface: ${ifc}\n"
 			randomize_mac $ifc
 		done
 	fi
 
 	# randomize wireless MACs
 	for ifc in $(ip -o link | awk '{print $2}' | cut -d: -f1 | grep '^wl'); do
+		printf "[+] Randomizing MAC for interface: ${ifc}\n"
 		randomize_mac $ifc
 	done
 
@@ -227,6 +229,7 @@ NamePolicy=kernel database onboard slot path
 MACAddressPolicy=random
 EOF
 
+	printf '[+] MAC addresses will randomize automatically\n'
 
 }
 
@@ -407,7 +410,7 @@ hush() {
 		printf '[+] Disabling systemd logging\n'
 		hash journalctl 2>/dev/null && disable_systemd_logging
 
-		printf '[+] Randomizing MAC addresses on boot\n'
+		printf '[+] Randomizing MAC addresses\n'
 		randomize_macs
 
 	fi

@@ -11,7 +11,7 @@ bash -c "$(wget -O - https://raw.githubusercontent.com/TheTechromancer/hu.sh/mas
 #### Performs the following tasks:
 
 <ul>
-	<li>Randomizes all MAC addresses on each boot</li>
+	<li>Randomizes all MAC addresses automatically on boot (and for interfaces connected after boot)</li>
 	<li>Deletes and disables Bash history (~/.bash_history) for all users (up-arrow in terminal still works)</li>
 	<li>Deletes and disables Python history (~/.python_history) for all users</li>
 	<li>Deletes and disables Vim history (~/.viminfo) for all users</li>
