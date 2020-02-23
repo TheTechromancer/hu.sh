@@ -9,7 +9,6 @@ torify=true
 nohistory=true
 vim_config="$(find /etc -maxdepth 3 -type f -name 'vimrc' 2>/dev/null | head -n 1)"
 journald_config='/etc/systemd/journald.conf'
-macchanger_script='/usr/local/bin/macchanger_all.sh'
 
 homedirs=$(grep -v '/nologin$\|/false$' /etc/passwd | cut -d: -f6 | grep -v '^/$' | grep '^/root\|^/home')
 
@@ -177,43 +176,57 @@ disable_systemd_logging() {
 }
 
 
+randomize_mac() {
+
+	# save interface state
+	ifc_state=$(ip -o link show $1 | egrep -oi 'state (UP|DOWN)' | awk '{print $NF}' | tr '[:upper:]' '[:lower:]')
+	# disable interface
+	ip link set down dev $1
+	# randomize MAC
+	/usr/bin/macchanger -b -r $1
+	# restore interface state
+	ip link set $ifc_state dev $1
+
+}
+
+
 randomize_macs() {
 
-	command -v 'macchanger' >/dev/null 2>&1 || (printf '[!] WARNING: please install macchanger to enable MAC randomization\n')
+	# return if macchanger isn't installed
+	if ! hash 'macchanger' &>/dev/null
+	then
+		printf '[!] WARNING: please install macchanger to enable MAC randomization\n'
+		return
+	fi
 
-# use echo to avoid variable replacement
-echo -n '#!/bin/bash
-if [[ ! $(cat /proc/cpuinfo | grep hypervisor) ]]; then
+	# if not running in VM (changing the MAC can nuke the network connection)
+	if [[ ! $(cat /proc/cpuinfo | grep hypervisor) ]]
+	then
+		# randomize ethernet MACs
+		for ifc in $(ip -o link | awk '{print $2}' | cut -d: -f1 | grep '^en\|^eth'); do
+			randomize_mac $ifc
+		done
+	fi
 
-	for ifc in $(ip -o link | awk '\''{print $2}'\'' | cut -d: -f1 | grep '\''^eno|\^ens|\^enp\|^enx\|^eth'\''); do
-		ip link set down dev $ifc
-		/usr/bin/macchanger -b -r $ifc
+	# randomize wireless MACs
+	for ifc in $(ip -o link | awk '{print $2}' | cut -d: -f1 | grep '^wl'); do
+		randomize_mac $ifc
 	done
 
-fi
+	# set it to happen automatically
+	link_file=/lib/systemd/network/99-default.link
+	# try to replace the line
+	sed -i 's/^MACAddressPolicy=.*/MACAddressPolicy=random/g' "$link_file" 2>/dev/null
+	# if that fails, overwrite the file
+	grep '^MACAddressPolicy' "$link_file" || cat <<EOF > "$link_file"
+[Match]
+OriginalName=*
 
-for ifc in $(ip -o link | awk '\''{print $2}'\'' | cut -d: -f1 | grep '\''^wlp\|^wlan'\''); do
-	ip link set down dev $ifc
-	/usr/bin/macchanger -r $ifc
-done' > "$macchanger_script"
-	
-	chmod +x "$macchanger_script"
-
-	cat <<EOF > '/etc/systemd/system/macchanger_all.service'
-[Unit]
-Description=Randomize MAC address at boot time with macchanger
-Before=network.target
-
-[Service]
-Type=oneshot
-ExecStart=$macchanger_script
-
-[Install]
-Alias=multi-user.target.wants/macchanger_all.service
+[Link]
+NamePolicy=kernel database onboard slot path
+MACAddressPolicy=random
 EOF
 
-	systemctl disable macchanger_all.service >/dev/null 2>&1
-	systemctl enable macchanger_all.service >/dev/null 2>&1
 
 }
 
